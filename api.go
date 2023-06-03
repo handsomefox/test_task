@@ -221,6 +221,15 @@ func (s *APIServer) HandleGetAllImages(claims *jwt.RegisteredClaims, w http.Resp
 		return &StatusError{Err: err, Status: http.StatusInternalServerError}
 	}
 
+	for i := 0; i < len(images); i++ {
+		url := s.listenAddr + "/?id=" + images[i].ImageURL
+		if !strings.HasPrefix(url, "http://") || !strings.HasPrefix(url, "https://") {
+			url = "http://" + url
+		}
+
+		images[i].ImageURL = url
+	}
+
 	return writeJSON(w, HandleGetAllImagesResponse{Images: images})
 }
 

@@ -9,11 +9,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/exp/slog"
 )
 
 var (
@@ -38,6 +40,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+		AddSource: false,
+		Level:     slog.LevelDebug,
+	}))
+
+	slog.SetDefault(logger)
 }
 
 func TestAPIServer_HandleLogin(t *testing.T) {
@@ -93,7 +102,8 @@ func TestAPIServer_HandleGetAllImagesAndHandleGetImageByID(t *testing.T) {
 
 	// HandleGetImageByID
 
-	id := images.Images[0].ImageURL
+	id := strings.Split(images.Images[0].ImageURL, "?id=")[1]
+
 	req, err = http.NewRequest(http.MethodGet, testServer.URL+"/?id="+id, http.NoBody)
 	assert.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer "+testToken.Access)
